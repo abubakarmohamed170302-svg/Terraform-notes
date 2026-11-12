@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec > >(tee /var/log/wordpress-bootstrap.log | logger -t wordpress-bootstrap -s 2>/dev/console) 2>&1
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install -y apache2 mariadb-server php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip curl tar
+
+systemctl enable --now apache2
+systemctl enable --now mariadb
+
+mysql <<SQL
+CREATE DATABASE IF NOT EXISTS \`${database_name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '${database_user}'@'localhost' IDENTIFIED BY '${database_password}';
+ALTER USER '${database_user}'@'localhost' IDENTIFIED BY '${database_password}';
+GRANT ALL PRIVILEGES ON \`${database_name}\`.* TO '${database_user}'@'localhost';
+FLUSH PRIVILEGES;
+SQL
+
+work_dir="$(mktemp -d)"
+curl --fail --location --silent --show-error https://wordpress.org/latest.tar.gz -o "$${work_dir}/wordpress.tar.gz"
+tar -xzf "$${work_dir}/wordpress.tar.gz" -C "$${work_dir}"
+
+rm -f /var/www/html/index.html
+cp -a "$${work_dir}/wordpress/." /var/www/html/
+
+cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+sed -i "s/database_name_here/${database_name}/" /var/www/html/wp-config.php
+sed -i "s/username_here/${database_user}/" /var/www/html/wp-config.php
+sed -i "s/password_here/${database_password}/" /var/www/html/wp-config.php
+
+salt_file="$(mktemp)"
+if curl --fail --silent --show-error https://api.wordpress.org/secret-key/1.1/salt/ > "$salt_file"; then
+  awk -v salts="$(cat "$${salt_file}")" '
+    /define\(.*(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)/ {
+      if (!inserted) {
+        print salts
+        inserted = 1
+      }
+      next
+    }
+    { print }
+  ' /var/www/html/wp-config.php > /var/www/html/wp-config.php.new
+  mv /var/www/html/wp-config.php.new /var/www/html/wp-config.php
+fi
+
+chown -R www-data:www-data /var/www/html
+find /var/www/html -type d -exec chmod 755 {} \;
+find /var/www/html -type f -exec chmod 644 {} \;
+
+cat >/etc/apache2/conf-available/wordpress.conf <<'APACHE'
+<Directory /var/www/html>
+    AllowOverride All
+    Require all granted
+</Directory>
+APACHE
+
+a2enmod rewrite
+a2enconf wordpress
+apache2ctl configtest
+systemctl restart apache2
+
+rm -rf "$${work_dir}" "$${salt_file}"
+touch /var/lib/wordpress-bootstrap-complete
+
