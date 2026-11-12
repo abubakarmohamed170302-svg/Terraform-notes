@@ -1,0 +1,32 @@
+# Terraform working directory
+**/.terraform/*
+
+# State files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files may contain secrets
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Saved plan files
+*.tfplan
+tfplan
+
+# CLI configuration
+.terraformrc
+terraform.rc
+
+# Keys and local environment files
+*.pem
+*.key
+.env
+.DS_Store
+
+# Do commit .terraform.lock.hcl
+
