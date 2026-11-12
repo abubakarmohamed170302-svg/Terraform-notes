@@ -1,0 +1,13 @@
+aws_region    = "eu-west-2"
+project_name  = "terraform-cloud-init"
+environment   = "dev"
+instance_type = "t3.micro"
+
+# Replace these with IDs from your AWS account.
+vpc_id    = "vpc-REPLACE_ME"
+subnet_id = "subnet-REPLACE_ME"
+
+# Optional. Leave null to disable SSH completely.
+key_name   = null
+admin_cidr = null
+
