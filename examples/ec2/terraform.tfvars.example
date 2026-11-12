@@ -1,0 +1,5 @@
+aws_region    = "eu-west-2"
+project_name  = "terraform-notes"
+environment   = "dev"
+instance_type = "t3.micro"
+
