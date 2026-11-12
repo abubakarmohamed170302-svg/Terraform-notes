@@ -13,6 +13,15 @@ Beginner-friendly Terraform revision notes and practical AWS examples completed 
 7. [Terraform Modules](./07-modules.md)
 8. [Best Practices and Interview Questions](./08-best-practices-interview.md)
 
+## Final assignments
+
+Two deployment-ready projects demonstrate the Terraform concepts covered in the module:
+
+1. [Deploy WordPress on AWS](./assignments/01-wordpress-aws/README.md)
+2. [Deploy NGINX with Cloud-Init](./assignments/02-ec2-cloud-init/README.md)
+
+[View the final assignments overview](./assignments/README.md)
+
 ## Core workflow
 
 ```text
@@ -46,4 +55,3 @@ The [`examples/ec2`](./examples/ec2) directory contains a reusable example that 
 **Abubakar Mohamed** — Aspiring DevOps Engineer completing the CoderCo DevOps Academy.
 
 [Connect with me on LinkedIn](https://www.linkedin.com/in/abubakar-mohamed-3047a5211/)
-
